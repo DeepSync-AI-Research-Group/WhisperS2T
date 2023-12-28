@@ -88,6 +88,13 @@ class WhisperModelCT2(WhisperModel):
         tokenizer_file = os.path.join(self.model_path, "tokenizer.json")
         tokenizer = Tokenizer(tokenizers.Tokenizer.from_file(tokenizer_file), self.model.is_multilingual)
 
+        # For numeric normalization
+        self.number_tokens = [
+                i
+                for i in range(tokenizer.eot)
+                if all(c in "0123456789" for c in tokenizer.decode([i]).removeprefix(" "))
+            ]
+
         # ASR Options
         self.asr_options = FAST_ASR_OPTIONS
         self.asr_options.update(asr_options)
@@ -252,11 +259,6 @@ class WhisperModelCT2(WhisperModel):
 
     def set_number_normalization(self, value=True):
         if value:
-            number_tokens = [
-                i
-                for i in range(self.model.tokenizer.eot)
-                if all(c in "0123456789" for c in self.model.tokenizer.decode([i]).removeprefix(" "))
-            ]
-            self.generate_kwargs["suppress_tokens"] = self.asr_options['suppress_tokens'] + number_tokens
+            self.generate_kwargs["suppress_tokens"] = self.asr_options['suppress_tokens'] + self.number_tokens
         else:
             self.generate_kwargs["suppress_tokens"] = self.asr_options['suppress_tokens']
