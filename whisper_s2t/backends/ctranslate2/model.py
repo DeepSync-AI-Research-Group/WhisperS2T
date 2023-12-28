@@ -215,7 +215,7 @@ class WhisperModelCT2(WhisperModel):
 
         return word_timings
     
-    def generate_segment_batched(self, features, prompts, seq_lens, seg_metadata):
+    def generate_segment_batched(self, features, prompts, seq_lens=None, seg_metadata=None):
         
         if self.device == 'cpu':
             features = np.ascontiguousarray(features.detach().numpy())
@@ -249,3 +249,14 @@ class WhisperModelCT2(WhisperModel):
                 _response['word_timestamps'] = _word_timings
 
         return response
+
+    def set_number_normalization(self, value=True):
+        if value:
+            number_tokens = [
+                i
+                for i in range(self.model.tokenizer.eot)
+                if all(c in "0123456789" for c in self.model.tokenizer.decode([i]).removeprefix(" "))
+            ]
+            self.generate_kwargs["suppress_tokens"] = self.asr_options['suppress_tokens'] + number_tokens
+        else:
+            self.generate_kwargs["suppress_tokens"] = self.asr_options['suppress_tokens']
