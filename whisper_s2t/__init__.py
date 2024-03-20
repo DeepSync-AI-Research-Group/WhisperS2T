@@ -1,6 +1,7 @@
 import os
 from platformdirs import user_cache_dir
 
+from .utils import write_outputs
 
 BASE_PATH = os.path.dirname(__file__)
 
@@ -35,8 +36,10 @@ def load_model(model_identifier="large-v2",
     elif backend.lower() in ["openai", "oai"]:
         from .backends.openai.model import WhisperModelOAI as WhisperModel
 
+    elif backend.lower() in ["tensorrt", "trt", "trt-llm", "tensorrt-llm", "trt_llm", "tensorrt_llm"]:
+        from .backends.tensorrt.model import WhisperModelTRT as WhisperModel
     else:
-        raise ValueError(f"Backend name '{backend}' is invalid. Only following options are available: ['CTranslate2', 'HuggingFace', 'OpenAI']")
+        raise ValueError(f"Backend name '{backend}' is invalid. Only following options are available: ['CTranslate2', 'TensorRT-LLM', 'HuggingFace', 'OpenAI']")
         
     return WhisperModel(model_identifier, **model_kwargs)
         
